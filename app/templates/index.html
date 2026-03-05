@@ -396,8 +396,12 @@
         .output-content h3 { font-size: 1.1em; }
         .output-content p { margin-bottom: 10px; }
         .output-content strong { color: var(--text-primary); }
-        .output-content ul, .output-content ol { margin-left: 20px; margin-bottom: 10px; }
-        .output-content li { margin-bottom: 4px; }
+        .output-content ul, .output-content ol { margin-left: 24px; margin-bottom: 10px; padding-left: 0; }
+        .output-content ul { list-style: disc; }
+        .output-content ol { list-style: decimal; }
+        .output-content ul ul { list-style: circle; }
+        .output-content ul ul ul { list-style: square; }
+        .output-content li { margin-bottom: 4px; display: list-item; }
         .output-content hr { border: none; border-top: 1px solid var(--border-color); margin: 16px 0; }
         .output-content code {
             background: var(--code-bg);
@@ -413,6 +417,33 @@
             margin-bottom: 10px;
         }
         .output-content pre code { background: none; padding: 0; }
+        .output-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+            font-size: 0.9em;
+        }
+        .output-content th, .output-content td {
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            text-align: left;
+        }
+        .output-content th {
+            background: var(--accent-bg);
+            color: var(--accent);
+            font-weight: 600;
+        }
+        .output-content tr:nth-child(even) {
+            background: var(--bg-surface);
+        }
+        .output-content blockquote {
+            border-left: 3px solid var(--accent);
+            padding: 8px 16px;
+            margin: 10px 0;
+            background: var(--bg-surface);
+            border-radius: 0 6px 6px 0;
+            color: var(--text-secondary);
+        }
         .output-content .error {
             color: var(--error);
             background: var(--error-bg);
@@ -627,6 +658,7 @@
                 ></textarea>
                 <div class="btn-row">
                     <button class="btn" id="generateBtn" onclick="generate()">Generate</button>
+                    <button class="btn-secondary" id="resetBtn" onclick="resetState()">Reset</button>
                 </div>
             </div>
 
@@ -775,9 +807,11 @@
                     outputContent.dataset.rawMarkdown = data.report;
                     outputContent.innerHTML = marked.parse(data.report);
                     outputContent.classList.remove('error');
+                    localStorage.setItem('lastResponse', data.report);
                 } else {
                     outputContent.dataset.rawMarkdown = '';
                     outputContent.innerHTML = '<div class="error">Error: ' + esc(data.error) + '</div>';
+                    localStorage.removeItem('lastResponse');
                 }
                 outputSection.classList.add('visible');
             } catch (e) {
@@ -949,6 +983,28 @@
             if (e.ctrlKey && e.key === 'Enter') generate();
         });
 
+        /* ===== Reset ===== */
+        function resetState() {
+            document.getElementById('queryInput').value = '';
+            document.getElementById('outputSection').classList.remove('visible');
+            document.getElementById('outputContent').innerHTML = '';
+            document.getElementById('outputContent').dataset.rawMarkdown = '';
+            localStorage.removeItem('lastResponse');
+        }
+
+        /* ===== Restore last response from localStorage ===== */
+        function restoreLastResponse() {
+            const saved = localStorage.getItem('lastResponse');
+            if (saved) {
+                const outputContent = document.getElementById('outputContent');
+                const outputSection = document.getElementById('outputSection');
+                outputContent.dataset.rawMarkdown = saved;
+                outputContent.innerHTML = marked.parse(saved);
+                outputContent.classList.remove('error');
+                outputSection.classList.add('visible');
+            }
+        }
+
         /* ===== Util ===== */
         function esc(str) {
             const d = document.createElement('div');
@@ -958,6 +1014,7 @@
 
         /* ===== Init ===== */
         loadPrompts();
+        restoreLastResponse();
     </script>
 </body>
 </html>
