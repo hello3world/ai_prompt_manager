@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Prompt Hub</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        /* ===== CSS Variables / Themes ===== */
+        :root, [data-theme="dark"] {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-surface: rgba(255,255,255,0.05);
+            --bg-surface-hover: rgba(255,255,255,0.09);
+            --bg-input: rgba(0,0,0,0.3);
+            --bg-output: rgba(0,0,0,0.3);
+            --bg-modal: #1e1e36;
+            --border-color: rgba(255,255,255,0.1);
+            --border-accent: rgba(0,212,255,0.3);
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --text-muted: #606060;
+            --accent: #00d4ff;
+            --accent-dark: #0099cc;
+            --accent-bg: rgba(0,212,255,0.15);
+            --accent-bg-hover: rgba(0,212,255,0.25);
+            --success: #00ff88;
+            --error: #ff6b6b;
+            --error-bg: rgba(255,107,107,0.1);
+            --disabled-bg: #404040;
+            --disabled-text: #808080;
+            --scrollbar-thumb: rgba(255,255,255,0.15);
+            --shadow: rgba(0,0,0,0.3);
+            --code-bg: rgba(0,212,255,0.1);
+            --pre-bg: rgba(0,0,0,0.4);
+            --tooltip-bg: #252545;
+        }
+
+        [data-theme="gray"] {
+            --bg-primary: #2b2b2b;
+            --bg-secondary: #1f1f1f;
+            --bg-surface: rgba(255,255,255,0.06);
+            --bg-surface-hover: rgba(255,255,255,0.1);
+            --bg-input: rgba(0,0,0,0.25);
+            --bg-output: rgba(0,0,0,0.25);
+            --bg-modal: #2b2b2b;
+            --border-color: rgba(255,255,255,0.12);
+            --border-accent: rgba(0,212,255,0.3);
+            --text-primary: #e0e0e0;
+            --text-secondary: #aaa;
+            --text-muted: #666;
+            --accent: #00bcd4;
+            --accent-dark: #008fa1;
+            --accent-bg: rgba(0,188,212,0.15);
+            --accent-bg-hover: rgba(0,188,212,0.25);
+            --success: #4caf50;
+            --error: #f44336;
+            --error-bg: rgba(244,67,54,0.1);
+            --disabled-bg: #444;
+            --disabled-text: #777;
+            --scrollbar-thumb: rgba(255,255,255,0.18);
+            --shadow: rgba(0,0,0,0.4);
+            --code-bg: rgba(0,188,212,0.1);
+            --pre-bg: rgba(0,0,0,0.3);
+            --tooltip-bg: #333;
+        }
+
+        [data-theme="white"] {
+            --bg-primary: #f5f5f5;
+            --bg-secondary: #ffffff;
+            --bg-surface: rgba(0,0,0,0.03);
+            --bg-surface-hover: rgba(0,0,0,0.07);
+            --bg-input: #fff;
+            --bg-output: #fff;
+            --bg-modal: #fff;
+            --border-color: rgba(0,0,0,0.12);
+            --border-accent: rgba(0,150,180,0.4);
+            --text-primary: #1a1a1a;
+            --text-secondary: #555;
+            --text-muted: #999;
+            --accent: #0097a7;
+            --accent-dark: #00727f;
+            --accent-bg: rgba(0,151,167,0.1);
+            --accent-bg-hover: rgba(0,151,167,0.18);
+            --success: #2e7d32;
+            --error: #c62828;
+            --error-bg: rgba(198,40,40,0.08);
+            --disabled-bg: #ccc;
+            --disabled-text: #888;
+            --scrollbar-thumb: rgba(0,0,0,0.2);
+            --shadow: rgba(0,0,0,0.1);
+            --code-bg: rgba(0,151,167,0.08);
+            --pre-bg: rgba(0,0,0,0.04);
+            --tooltip-bg: #fff;
+        }
+
+        /* ===== Reset & Base ===== */
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* ===== Scrollbar ===== */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+        /* ===== Header ===== */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-surface);
+            flex-shrink: 0;
+        }
+        .header h1 {
+            font-size: 1.3rem;
+            color: var(--accent);
+            font-weight: 700;
+        }
+        .header-controls { display: flex; align-items: center; gap: 8px; }
+
+        .theme-btn {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .theme-btn:hover { transform: scale(1.15); }
+        .theme-btn.active { border-color: var(--accent); box-shadow: 0 0 6px var(--accent); }
+        .theme-btn[data-set-theme="dark"] { background: #1a1a2e; }
+        .theme-btn[data-set-theme="gray"] { background: #555; }
+        .theme-btn[data-set-theme="white"] { background: #f5f5f5; }
+
+        /* ===== Layout ===== */
+        .layout {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ===== Sidebar ===== */
+        .sidebar {
+            width: 280px;
+            min-width: 280px;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-surface);
+            flex-shrink: 0;
+        }
+        .sidebar-header {
+            padding: 16px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .sidebar-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .prompt-card {
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            margin-bottom: 4px;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .prompt-card:hover {
+            background: var(--bg-surface-hover);
+        }
+        .prompt-card.selected {
+            background: var(--accent-bg);
+            border-color: var(--accent);
+        }
+        .prompt-card-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+        .prompt-card-desc {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Tooltip on hover */
+        .prompt-card .tooltip {
+            display: none;
+            position: absolute;
+            left: calc(100% + 8px);
+            top: 0;
+            width: 260px;
+            padding: 12px;
+            background: var(--tooltip-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 16px var(--shadow);
+            z-index: 100;
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+        .prompt-card:hover .tooltip { display: block; }
+
+        .sidebar-footer {
+            padding: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+        .manage-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--accent-bg);
+            color: var(--accent);
+            border: 1px solid var(--border-accent);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .manage-btn:hover { background: var(--accent-bg-hover); }
+
+        /* ===== Main Area ===== */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 24px;
+            gap: 20px;
+        }
+
+        .input-section {
+            background: var(--bg-surface);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        .input-section label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .selected-prompt-name {
+            color: var(--accent);
+            font-weight: 600;
+        }
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 14px;
+            border: 2px solid var(--border-accent);
+            border-radius: 8px;
+            font-size: 15px;
+            resize: vertical;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        textarea:focus { outline: none; border-color: var(--accent); }
+        textarea::placeholder { color: var(--text-muted); }
+
+        .btn-row { display: flex; gap: 10px; margin-top: 12px; }
+        .btn {
+            flex: 1;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0,212,255,0.3);
+        }
+        .btn:disabled {
+            background: var(--disabled-bg);
+            color: var(--disabled-text);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 24px;
+            color: var(--text-secondary);
+        }
+        .loading.visible { display: block; }
+        .spinner {
+            width: 36px; height: 36px;
+            border: 3px solid var(--accent-bg);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== Output ===== */
+        .output-section {
+            background: var(--bg-surface);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            display: none;
+            flex: 1;
+            overflow: hidden;
+            flex-direction: column;
+        }
+        .output-section.visible { display: flex; }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+        .output-header h2 {
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+
+        .copy-btn {
+            display: flex; align-items: center; gap: 6px;
+            padding: 7px 12px;
+            background: var(--accent-bg);
+            color: var(--accent);
+            border: 1px solid var(--border-accent);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover { background: var(--accent-bg-hover); }
+        .copy-btn svg { width: 15px; height: 15px; fill: currentColor; }
+        .copy-btn.copied {
+            background: rgba(0,255,136,0.15);
+            border-color: rgba(0,255,136,0.3);
+            color: var(--success);
+        }
+
+        .output-content {
+            background: var(--bg-output);
+            border-radius: 8px;
+            padding: 20px;
+            font-size: 14px;
+            line-height: 1.7;
+            overflow-y: auto;
+            flex: 1;
+            color: var(--text-primary);
+        }
+        .output-content h1, .output-content h2, .output-content h3 {
+            color: var(--accent);
+            margin-top: 18px; margin-bottom: 8px;
+            border-bottom: 1px solid var(--border-accent);
+            padding-bottom: 6px;
+        }
+        .output-content h1 { font-size: 1.5em; }
+        .output-content h2 { font-size: 1.3em; }
+        .output-content h3 { font-size: 1.1em; }
+        .output-content p { margin-bottom: 10px; }
+        .output-content strong { color: var(--text-primary); }
+        .output-content ul, .output-content ol { margin-left: 20px; margin-bottom: 10px; }
+        .output-content li { margin-bottom: 4px; }
+        .output-content hr { border: none; border-top: 1px solid var(--border-color); margin: 16px 0; }
+        .output-content code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas','Monaco',monospace;
+        }
+        .output-content pre {
+            background: var(--pre-bg);
+            padding: 14px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin-bottom: 10px;
+        }
+        .output-content pre code { background: none; padding: 0; }
+        .output-content .error {
+            color: var(--error);
+            background: var(--error-bg);
+            border: 1px solid var(--error);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        /* ===== Modal ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.visible { display: flex; }
+
+        .modal {
+            background: var(--bg-modal);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            width: 720px;
+            max-width: 95vw;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px var(--shadow);
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .modal-header h2 { font-size: 1.1rem; color: var(--accent); }
+        .modal-close {
+            background: none; border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px;
+        }
+        .modal-close:hover { color: var(--text-primary); }
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Modal: prompt list view */
+        .modal-prompt-list { margin-bottom: 16px; }
+        .modal-prompt-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 6px;
+            background: var(--bg-surface);
+        }
+        .modal-prompt-item-name { font-weight: 600; font-size: 0.9rem; }
+        .modal-prompt-item-actions { display: flex; gap: 6px; }
+        .modal-action-btn {
+            padding: 5px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        .modal-action-btn:hover { background: var(--bg-surface-hover); color: var(--text-primary); }
+        .modal-action-btn.delete:hover { color: var(--error); border-color: var(--error); }
+
+        .add-prompt-btn {
+            padding: 10px;
+            width: 100%;
+            background: var(--accent-bg);
+            color: var(--accent);
+            border: 1px dashed var(--border-accent);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .add-prompt-btn:hover { background: var(--accent-bg-hover); }
+
+        /* Modal: form view */
+        .modal-form { display: none; }
+        .modal-form.visible { display: block; }
+        .modal-form label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            margin-top: 14px;
+        }
+        .modal-form label:first-child { margin-top: 0; }
+        .modal-form input,
+        .modal-form textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+        .modal-form input:focus,
+        .modal-form textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .modal-form textarea { min-height: 180px; font-family: 'Consolas','Monaco',monospace; font-size: 0.85rem; }
+        .modal-form .hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        .modal-form-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 18px;
+        }
+        .modal-form-actions .btn { font-size: 14px; padding: 10px 20px; }
+        .btn-secondary {
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        .btn-secondary:hover { background: var(--bg-surface-hover); color: var(--text-primary); }
+
+        .no-prompt-warning {
+            padding: 12px;
+            background: var(--error-bg);
+            border: 1px solid var(--error);
+            border-radius: 8px;
+            color: var(--error);
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 10px;
+            color: var(--text-muted);
+            font-size: 12px;
+            border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 768px) {
+            .layout { flex-direction: column; }
+            .sidebar { width: 100%; min-width: auto; border-right: none; border-bottom: 1px solid var(--border-color); max-height: 200px; }
+            .prompt-card .tooltip { display: none !important; }
+            .modal { width: 95vw; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>AI Prompt Hub</h1>
+        <div class="header-controls">
+            <div class="theme-btn" data-set-theme="dark" title="Dark theme"></div>
+            <div class="theme-btn" data-set-theme="gray" title="Gray theme"></div>
+            <div class="theme-btn" data-set-theme="white" title="White theme"></div>
+        </div>
+    </div>
+
+    <!-- Layout -->
+    <div class="layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <span>Prompt Templates</span>
+            </div>
+            <div class="sidebar-list" id="sidebarList">
+                <!-- Filled by JS -->
+            </div>
+            <div class="sidebar-footer">
+                <button class="manage-btn" onclick="openManager()">Manage Prompts</button>
+            </div>
+        </div>
+
+        <!-- Main -->
+        <div class="main">
+            <div class="input-section">
+                <label>
+                    Prompt: <span class="selected-prompt-name" id="selectedPromptName">none selected</span>
+                </label>
+                <textarea
+                    id="queryInput"
+                    placeholder="Enter your query here... It will be inserted into the selected prompt's {QUERY} placeholder."
+                ></textarea>
+                <div class="btn-row">
+                    <button class="btn" id="generateBtn" onclick="generate()">Generate</button>
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Generating response...</p>
+            </div>
+
+            <div class="output-section" id="outputSection">
+                <div class="output-header">
+                    <h2>Response</h2>
+                    <button class="copy-btn" id="copyBtn" onclick="copyToClipboard()">
+                        <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                        <span>Copy</span>
+                    </button>
+                </div>
+                <div class="output-content" id="outputContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">Powered by Qwen AI</div>
+
+    <!-- Prompt Manager Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle">Manage Prompts</h2>
+                <button class="modal-close" onclick="closeManager()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- List View -->
+                <div id="modalListView">
+                    <div class="modal-prompt-list" id="modalPromptList"></div>
+                    <button class="add-prompt-btn" onclick="showForm()">+ Add New Prompt</button>
+                </div>
+                <!-- Form View -->
+                <div class="modal-form" id="modalFormView">
+                    <label for="formName">Name</label>
+                    <input type="text" id="formName" placeholder="e.g. Bug Report Template">
+
+                    <label for="formDesc">Description</label>
+                    <input type="text" id="formDesc" placeholder="Brief description of what this prompt does">
+
+                    <label for="formTemplate">Template</label>
+                    <textarea id="formTemplate" placeholder="Your prompt template text. Use {QUERY} where the user's input should be inserted."></textarea>
+                    <div class="hint">Use <code>{QUERY}</code> as a placeholder for the user's input text.</div>
+
+                    <div class="modal-form-actions">
+                        <button class="btn" onclick="savePrompt()">Save</button>
+                        <button class="btn-secondary" onclick="hideForm()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ===== State ===== */
+        let prompts = [];
+        let selectedPromptId = null;
+        let editingPromptId = null; // null = creating new
+
+        /* ===== Theme ===== */
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            document.querySelectorAll('.theme-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.setTheme === theme);
+            });
+        }
+
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', () => setTheme(btn.dataset.setTheme));
+        });
+
+        // Restore saved theme
+        setTheme(localStorage.getItem('theme') || 'dark');
+
+        /* ===== Prompts: Load & Render Sidebar ===== */
+        async function loadPrompts() {
+            try {
+                const res = await fetch('/api/prompts');
+                prompts = await res.json();
+            } catch (e) {
+                prompts = [];
+            }
+            renderSidebar();
+            // Auto-select first if nothing selected
+            if (prompts.length > 0 && !prompts.find(p => p.id === selectedPromptId)) {
+                selectPrompt(prompts[0].id);
+            }
+            if (prompts.length === 0) {
+                selectedPromptId = null;
+                document.getElementById('selectedPromptName').textContent = 'none selected';
+            }
+        }
+
+        function renderSidebar() {
+            const list = document.getElementById('sidebarList');
+            if (prompts.length === 0) {
+                list.innerHTML = '<div class="no-prompt-warning">No prompts yet. Click "Manage Prompts" to create one.</div>';
+                return;
+            }
+            list.innerHTML = prompts.map(p => `
+                <div class="prompt-card ${p.id === selectedPromptId ? 'selected' : ''}"
+                     onclick="selectPrompt(${p.id})">
+                    <div class="prompt-card-name">${esc(p.name)}</div>
+                    <div class="prompt-card-desc">${esc(p.description)}</div>
+                    <div class="tooltip">${esc(p.description)}</div>
+                </div>
+            `).join('');
+        }
+
+        function selectPrompt(id) {
+            selectedPromptId = id;
+            const p = prompts.find(x => x.id === id);
+            document.getElementById('selectedPromptName').textContent = p ? p.name : 'none selected';
+            renderSidebar();
+        }
+
+        /* ===== Generate ===== */
+        async function generate() {
+            const query = document.getElementById('queryInput').value.trim();
+            if (!query) { alert('Please enter a query.'); return; }
+            if (!selectedPromptId) { alert('Please select a prompt template first.'); return; }
+
+            const btn = document.getElementById('generateBtn');
+            const loading = document.getElementById('loading');
+            const outputSection = document.getElementById('outputSection');
+            const outputContent = document.getElementById('outputContent');
+
+            btn.disabled = true;
+            loading.classList.add('visible');
+            outputSection.classList.remove('visible');
+
+            try {
+                const res = await fetch('/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt_id: selectedPromptId, query: query }),
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    outputContent.dataset.rawMarkdown = data.report;
+                    outputContent.innerHTML = marked.parse(data.report);
+                    outputContent.classList.remove('error');
+                } else {
+                    outputContent.dataset.rawMarkdown = '';
+                    outputContent.innerHTML = '<div class="error">Error: ' + esc(data.error) + '</div>';
+                }
+                outputSection.classList.add('visible');
+            } catch (e) {
+                outputContent.innerHTML = '<div class="error">Connection error: ' + esc(e.message) + '</div>';
+                outputSection.classList.add('visible');
+            } finally {
+                btn.disabled = false;
+                loading.classList.remove('visible');
+            }
+        }
+
+        /* ===== Rich Copy ===== */
+        async function copyToClipboard() {
+            const outputContent = document.getElementById('outputContent');
+            const btn = document.getElementById('copyBtn');
+            const btnText = btn.querySelector('span');
+            const rawMarkdown = outputContent.dataset.rawMarkdown || outputContent.textContent;
+            const renderedHtml = outputContent.innerHTML;
+
+            try {
+                // Try rich copy: both HTML (for Jira/rich editors) and plain text (markdown)
+                const htmlBlob = new Blob([renderedHtml], { type: 'text/html' });
+                const textBlob = new Blob([rawMarkdown], { type: 'text/plain' });
+                await navigator.clipboard.write([
+                    new ClipboardItem({ 'text/html': htmlBlob, 'text/plain': textBlob })
+                ]);
+            } catch (e) {
+                // Fallback: plain text only
+                await navigator.clipboard.writeText(rawMarkdown);
+            }
+
+            btn.classList.add('copied');
+            btn.querySelector('svg').innerHTML = '<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>';
+            btnText.textContent = 'Copied!';
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.querySelector('svg').innerHTML = '<path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>';
+                btnText.textContent = 'Copy';
+            }, 2000);
+        }
+
+        /* ===== Prompt Manager Modal ===== */
+        function openManager() {
+            document.getElementById('modalOverlay').classList.add('visible');
+            hideForm();
+            renderModalList();
+        }
+
+        function closeManager() {
+            document.getElementById('modalOverlay').classList.remove('visible');
+        }
+
+        async function renderModalList() {
+            // Reload from server in case of external changes
+            try {
+                const res = await fetch('/api/prompts');
+                prompts = await res.json();
+            } catch(e) {}
+            renderSidebar();
+
+            const list = document.getElementById('modalPromptList');
+            if (prompts.length === 0) {
+                list.innerHTML = '<div class="no-prompt-warning">No prompts yet.</div>';
+                return;
+            }
+            list.innerHTML = prompts.map(p => `
+                <div class="modal-prompt-item">
+                    <span class="modal-prompt-item-name">${esc(p.name)}</span>
+                    <div class="modal-prompt-item-actions">
+                        <button class="modal-action-btn" onclick="editPrompt(${p.id})">Edit</button>
+                        <button class="modal-action-btn delete" onclick="deletePrompt(${p.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showForm(id) {
+            editingPromptId = id || null;
+            document.getElementById('modalListView').style.display = 'none';
+            document.getElementById('modalFormView').classList.add('visible');
+            document.getElementById('modalTitle').textContent = editingPromptId ? 'Edit Prompt' : 'New Prompt';
+
+            // Clear form
+            document.getElementById('formName').value = '';
+            document.getElementById('formDesc').value = '';
+            document.getElementById('formTemplate').value = '';
+        }
+
+        function hideForm() {
+            editingPromptId = null;
+            document.getElementById('modalFormView').classList.remove('visible');
+            document.getElementById('modalListView').style.display = '';
+            document.getElementById('modalTitle').textContent = 'Manage Prompts';
+        }
+
+        async function editPrompt(id) {
+            showForm(id);
+            try {
+                const res = await fetch('/api/prompts/' + id);
+                const p = await res.json();
+                document.getElementById('formName').value = p.name;
+                document.getElementById('formDesc').value = p.description;
+                document.getElementById('formTemplate').value = p.template_text;
+            } catch(e) {
+                alert('Failed to load prompt.');
+                hideForm();
+            }
+        }
+
+        async function savePrompt() {
+            const name = document.getElementById('formName').value.trim();
+            const description = document.getElementById('formDesc').value.trim();
+            const template_text = document.getElementById('formTemplate').value;
+
+            if (!name || !description || !template_text) {
+                alert('All fields are required.');
+                return;
+            }
+
+            if (!template_text.includes('{QUERY}')) {
+                if (!confirm('Warning: template does not contain {QUERY} placeholder. The user query will not be inserted. Continue?')) {
+                    return;
+                }
+            }
+
+            const body = JSON.stringify({ name, description, template_text });
+            const headers = { 'Content-Type': 'application/json' };
+
+            try {
+                let res;
+                if (editingPromptId) {
+                    res = await fetch('/api/prompts/' + editingPromptId, { method: 'PUT', headers, body });
+                } else {
+                    res = await fetch('/api/prompts', { method: 'POST', headers, body });
+                }
+                if (!res.ok) {
+                    const err = await res.json();
+                    alert('Error: ' + (err.detail || JSON.stringify(err)));
+                    return;
+                }
+            } catch(e) {
+                alert('Failed to save: ' + e.message);
+                return;
+            }
+
+            hideForm();
+            await renderModalList();
+        }
+
+        async function deletePrompt(id) {
+            if (!confirm('Are you sure you want to delete this prompt?')) return;
+            try {
+                await fetch('/api/prompts/' + id, { method: 'DELETE' });
+            } catch(e) {}
+            if (selectedPromptId === id) {
+                selectedPromptId = null;
+                document.getElementById('selectedPromptName').textContent = 'none selected';
+            }
+            await renderModalList();
+        }
+
+        // Close modal on overlay click
+        document.getElementById('modalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeManager();
+        });
+
+        /* ===== Keyboard shortcut ===== */
+        document.getElementById('queryInput').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') generate();
+        });
+
+        /* ===== Util ===== */
+        function esc(str) {
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        /* ===== Init ===== */
+        loadPrompts();
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+.env*
+*.md
+!bug_report_prompt.md
+__pycache__
+*.pyc
+.git
+.gitignore
