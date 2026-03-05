@@ -74,7 +74,7 @@
             --bg-output: #fff;
             --bg-modal: #fff;
             --border-color: rgba(0,0,0,0.12);
-            --border-accent: rgba(0,150,180,0.4);
+            --border-accent: rgba(0,0,0,0.2);
             --text-primary: #1a1a1a;
             --text-secondary: #555;
             --text-muted: #999;
@@ -92,6 +92,35 @@
             --code-bg: rgba(0,151,167,0.08);
             --pre-bg: rgba(0,0,0,0.04);
             --tooltip-bg: #fff;
+        }
+
+        [data-theme="charcoal"] {
+            --bg-primary: #1e1e1e;
+            --bg-secondary: #181818;
+            --bg-surface: rgba(255,255,255,0.04);
+            --bg-surface-hover: rgba(255,255,255,0.08);
+            --bg-input: rgba(0,0,0,0.3);
+            --bg-output: rgba(0,0,0,0.25);
+            --bg-modal: #232323;
+            --border-color: rgba(255,255,255,0.08);
+            --border-accent: rgba(255,255,255,0.15);
+            --text-primary: #d4d4d4;
+            --text-secondary: #999;
+            --text-muted: #555;
+            --accent: #cccccc;
+            --accent-dark: #999999;
+            --accent-bg: rgba(255,255,255,0.06);
+            --accent-bg-hover: rgba(255,255,255,0.1);
+            --success: #6fbf73;
+            --error: #e57373;
+            --error-bg: rgba(229,115,115,0.1);
+            --disabled-bg: #333;
+            --disabled-text: #666;
+            --scrollbar-thumb: rgba(255,255,255,0.12);
+            --shadow: rgba(0,0,0,0.5);
+            --code-bg: rgba(255,255,255,0.06);
+            --pre-bg: rgba(0,0,0,0.3);
+            --tooltip-bg: #2a2a2a;
         }
 
         /* ===== Reset & Base ===== */
@@ -140,6 +169,7 @@
         .theme-btn.active { border-color: var(--accent); box-shadow: 0 0 6px var(--accent); }
         .theme-btn[data-set-theme="dark"] { background: #1a1a2e; }
         .theme-btn[data-set-theme="gray"] { background: #555; }
+        .theme-btn[data-set-theme="charcoal"] { background: #2a2a2a; }
         .theme-btn[data-set-theme="white"] { background: #f5f5f5; }
 
         /* ===== Layout ===== */
@@ -627,6 +657,7 @@
         <div class="header-controls">
             <div class="theme-btn" data-set-theme="dark" title="Dark theme"></div>
             <div class="theme-btn" data-set-theme="gray" title="Gray theme"></div>
+            <div class="theme-btn" data-set-theme="charcoal" title="Charcoal theme"></div>
             <div class="theme-btn" data-set-theme="white" title="White theme"></div>
         </div>
     </div>
