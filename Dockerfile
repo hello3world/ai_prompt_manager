@@ -8,7 +8,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY app/ ./app/
-COPY bug_report_prompt.md .
 
 # Expose port
 EXPOSE 8000
