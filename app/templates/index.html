@@ -158,6 +158,22 @@
         }
         .header-controls { display: flex; align-items: center; gap: 8px; }
 
+        .model-select {
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 0.82rem;
+            font-family: inherit;
+            cursor: pointer;
+            outline: none;
+            margin-right: 8px;
+            transition: border-color 0.2s;
+        }
+        .model-select:focus { border-color: var(--accent); }
+        .model-select option { background: var(--bg-modal); color: var(--text-primary); }
+
         .theme-btn {
             width: 28px; height: 28px;
             border-radius: 50%;
@@ -303,6 +319,97 @@
             color: var(--accent);
             font-weight: 600;
         }
+
+        /* Model radio toggle */
+        .model-toggle {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .model-toggle label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0;
+        }
+        .model-toggle input[type="radio"] {
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        /* Image upload zone */
+        .image-upload-zone {
+            display: none;
+            margin-bottom: 12px;
+        }
+        .image-upload-zone.visible { display: block; }
+
+        .image-upload-zone input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px dashed var(--border-accent);
+            border-radius: 8px;
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .image-upload-zone input[type="file"]::-webkit-file-upload-button {
+            padding: 6px 14px;
+            border: 1px solid var(--border-accent);
+            border-radius: 6px;
+            background: var(--accent-bg);
+            color: var(--accent);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: background 0.2s;
+        }
+        .image-upload-zone input[type="file"]::-webkit-file-upload-button:hover {
+            background: var(--accent-bg-hover);
+        }
+
+        .image-preview {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 8px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+        }
+        .image-preview.visible { display: flex; }
+        .image-preview img {
+            max-height: 60px;
+            max-width: 100px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+        .image-preview-name {
+            flex: 1;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .image-remove-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 2px 8px;
+            transition: all 0.2s;
+        }
+        .image-remove-btn:hover { color: var(--error); border-color: var(--error); }
         textarea {
             width: 100%;
             min-height: 120px;
@@ -655,6 +762,10 @@
     <div class="header">
         <h1>AI Prompt Hub</h1>
         <div class="header-controls">
+            <select id="modelSelector" class="model-select" onchange="onModelChange()">
+                <option value="qwen-max">Qwen Max (Text)</option>
+                <option value="qwen-vl-max">Qwen VL Max (Vision)</option>
+            </select>
             <div class="theme-btn" data-set-theme="dark" title="Dark theme"></div>
             <div class="theme-btn" data-set-theme="gray" title="Gray theme"></div>
             <div class="theme-btn" data-set-theme="charcoal" title="Charcoal theme"></div>
@@ -683,6 +794,14 @@
                 <label>
                     Prompt: <span class="selected-prompt-name" id="selectedPromptName">none selected</span>
                 </label>
+                <div class="image-upload-zone" id="imageUploadZone">
+                    <input type="file" id="imageInput" accept="image/jpeg,image/png,image/gif,image/webp" onchange="onImageSelected(this)">
+                    <div class="image-preview" id="imagePreview">
+                        <img id="imagePreviewImg" src="" alt="Preview">
+                        <span class="image-preview-name" id="imagePreviewName"></span>
+                        <button class="image-remove-btn" onclick="removeImage()" title="Remove image">&times;</button>
+                    </div>
+                </div>
                 <textarea
                     id="queryInput"
                     placeholder="Enter your query here... It will be inserted into the selected prompt's {QUERY} placeholder."
@@ -752,6 +871,51 @@
         let prompts = [];
         let selectedPromptId = null;
         let editingPromptId = null; // null = creating new
+
+        /* ===== Model Selector ===== */
+        function onModelChange() {
+            const model = document.getElementById('modelSelector').value;
+            localStorage.setItem('selectedModel', model);
+            const zone = document.getElementById('imageUploadZone');
+            if (model === 'qwen-vl-max') {
+                zone.classList.add('visible');
+            } else {
+                zone.classList.remove('visible');
+                removeImage();
+            }
+        }
+
+        function restoreModel() {
+            const saved = localStorage.getItem('selectedModel') || 'qwen-max';
+            const sel = document.getElementById('modelSelector');
+            sel.value = saved;
+            onModelChange();
+        }
+
+        /* ===== Image Handling ===== */
+        function onImageSelected(input) {
+            const file = input.files[0];
+            if (!file) { hideImagePreview(); return; }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imagePreviewImg').src = e.target.result;
+                document.getElementById('imagePreviewName').textContent = file.name;
+                document.getElementById('imagePreview').classList.add('visible');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImage() {
+            const input = document.getElementById('imageInput');
+            input.value = '';
+            hideImagePreview();
+        }
+
+        function hideImagePreview() {
+            document.getElementById('imagePreview').classList.remove('visible');
+            document.getElementById('imagePreviewImg').src = '';
+            document.getElementById('imagePreviewName').textContent = '';
+        }
 
         /* ===== Theme ===== */
         function setTheme(theme) {
@@ -826,12 +990,29 @@
             loading.classList.add('visible');
             outputSection.classList.remove('visible');
 
+            const model = document.getElementById('modelSelector').value;
+            const imageFile = document.getElementById('imageInput').files[0];
+
             try {
-                const res = await fetch('/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt_id: selectedPromptId, query: query }),
-                });
+                let res;
+                if (model === 'qwen-vl-max' && imageFile) {
+                    // Vision mode: send FormData to /generate-vision
+                    const formData = new FormData();
+                    formData.append('prompt_id', selectedPromptId);
+                    formData.append('query', query);
+                    formData.append('file', imageFile);
+                    res = await fetch('/generate-vision', {
+                        method: 'POST',
+                        body: formData,
+                    });
+                } else {
+                    // Text mode: send JSON to /generate
+                    res = await fetch('/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ prompt_id: selectedPromptId, query: query }),
+                    });
+                }
                 const data = await res.json();
 
                 if (data.success) {
@@ -1021,6 +1202,7 @@
             document.getElementById('outputContent').innerHTML = '';
             document.getElementById('outputContent').dataset.rawMarkdown = '';
             localStorage.removeItem('lastResponse');
+            removeImage();
         }
 
         /* ===== Restore last response from localStorage ===== */
@@ -1046,6 +1228,7 @@
         /* ===== Init ===== */
         loadPrompts();
         restoreLastResponse();
+        restoreModel();
     </script>
 </body>
 </html>
