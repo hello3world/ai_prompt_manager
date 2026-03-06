@@ -61,9 +61,46 @@ This starts two containers:
 
 Open in browser: [http://localhost:8000](http://localhost:8000)
 
-On first launch, the default "Bug Report Template" prompt is automatically seeded into the database.
+On first launch, default prompts ("Bug Report Template", "Test Case Generator") are automatically seeded into the database.
 
-### 5. Stop the application
+### 5. Connect to the database
+
+To connect to PostgreSQL running inside Docker:
+
+```bash
+docker exec -it prompthub-db psql -U postgres -d prompthub
+```
+
+Useful queries:
+
+```sql
+-- List all prompts
+SELECT id, name, description FROM prompts;
+
+-- View full prompt text
+SELECT name, template_text FROM prompts WHERE id = 1;
+```
+
+To connect from an external tool (DBeaver, pgAdmin, DataGrip, etc.):
+
+1. Add port mapping to `docker-compose.yml` under the `db` service:
+   ```yaml
+   ports:
+     - "5432:5432"
+   ```
+2. Restart: `docker compose up -d`
+3. Use these connection settings:
+   | Parameter | Value              |
+   |-----------|--------------------|
+   | Host      | `localhost`        |
+   | Port      | `5432`             |
+   | Database  | `prompthub`        |
+   | User      | `postgres`         |
+   | Password  | `prompthub_secret` |
+
+> Password is set in `docker-compose.yml` (`POSTGRES_PASSWORD`). For production, change it and update `.env.prod` accordingly.
+
+### 6. Stop the application
 
 ```bash
 docker compose down
@@ -91,6 +128,7 @@ docker compose down -v
 .
 ├── app/
 │   ├── main.py              # FastAPI app, lifespan, /generate endpoint
+│   ├── default_prompts.py    # Default prompt definitions for DB seeding
 │   ├── database.py           # Async SQLAlchemy engine & session
 │   ├── models.py             # Prompt ORM model
 │   ├── schemas.py            # Pydantic schemas
@@ -98,7 +136,7 @@ docker compose down -v
 │   │   └── prompts.py        # CRUD API /api/prompts
 │   └── templates/
 │       └── index.html        # Frontend (vanilla JS)
-├── bug_report_prompt.md      # Default prompt (seeded on first run)
+├── prompts_backup.md         # Backup copy of default prompts (not used by app)
 ├── docker-compose.yml
 ├── Dockerfile
 ├── requirements.txt
