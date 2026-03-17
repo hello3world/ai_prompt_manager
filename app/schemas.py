@@ -34,6 +34,19 @@ class PromptListItem(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class PromptExportItem(BaseModel):
+    name: str
+    description: str
+    template_text: str
+
+
+class ImportResult(BaseModel):
+    imported: int
+    skipped: int
+    updated: int
+    errors: list[str]
+
+
 class GenerateRequest(BaseModel):
     prompt_id: int
     query: str

@@ -291,6 +291,152 @@
         }
         .manage-btn:hover { background: var(--accent-bg-hover); }
 
+        .sidebar-search {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .sidebar-search input {
+            width: 100%;
+            padding: 7px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 0.82rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .sidebar-search input:focus { border-color: var(--accent); }
+        .sidebar-search input::placeholder { color: var(--text-muted); }
+
+        .prompt-count-badge {
+            display: inline-block;
+            background: var(--accent-bg);
+            color: var(--accent);
+            padding: 1px 7px;
+            border-radius: 10px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-left: 6px;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-btn-group {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+        .sidebar-btn-group .manage-btn { font-size: 0.78rem; padding: 8px; }
+
+        /* Import modal */
+        .import-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+        }
+        .import-overlay.visible { display: flex; }
+
+        .import-modal {
+            background: var(--bg-modal);
+            border-radius: 12px;
+            width: 420px;
+            max-width: 92vw;
+            box-shadow: 0 8px 32px var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+        .import-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .import-modal-header h3 { font-size: 1rem; color: var(--text-primary); }
+        .import-modal-body { padding: 20px; }
+
+        .import-file-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            margin-bottom: 16px;
+        }
+        .import-file-area:hover { border-color: var(--accent); background: var(--accent-bg); }
+        .import-file-area.has-file { border-color: var(--success); border-style: solid; }
+        .import-file-area input { display: none; }
+        .import-file-area .file-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .import-file-area .file-name {
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .import-strategy {
+            margin-bottom: 16px;
+        }
+        .import-strategy label.strategy-title {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .import-strategy-options {
+            display: flex;
+            gap: 8px;
+        }
+        .strategy-option {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            background: var(--bg-surface);
+            transition: all 0.2s;
+        }
+        .strategy-option:hover { background: var(--bg-surface-hover); }
+        .strategy-option.active {
+            border-color: var(--accent);
+            background: var(--accent-bg);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .import-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        .import-actions .btn,
+        .import-actions .btn-secondary { flex: 1; }
+
+        .import-results {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+        .import-results .result-row { display: flex; justify-content: space-between; }
+        .import-results .result-label { color: var(--text-secondary); }
+        .import-results .result-value { font-weight: 600; color: var(--text-primary); }
+
         /* ===== Main Area ===== */
         .main {
             flex: 1;
@@ -778,12 +924,19 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <span>Prompt Templates</span>
+                <span>Prompt Templates <span class="prompt-count-badge" id="promptCount">0</span></span>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="promptSearch" placeholder="Filter prompts..." oninput="renderSidebar()">
             </div>
             <div class="sidebar-list" id="sidebarList">
                 <!-- Filled by JS -->
             </div>
             <div class="sidebar-footer">
+                <div class="sidebar-btn-group">
+                    <button class="manage-btn" onclick="exportPrompts()" title="Export all prompts to JSON">Export</button>
+                    <button class="manage-btn" onclick="openImportDialog()" title="Import prompts from JSON">Import</button>
+                </div>
                 <button class="manage-btn" onclick="openManager()">Manage Prompts</button>
             </div>
         </div>
@@ -861,6 +1014,35 @@
                         <button class="btn" onclick="savePrompt()">Save</button>
                         <button class="btn-secondary" onclick="hideForm()">Cancel</button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div class="import-overlay" id="importOverlay">
+        <div class="import-modal">
+            <div class="import-modal-header">
+                <h3>Import Prompts</h3>
+                <button class="modal-close" onclick="closeImportDialog()">&times;</button>
+            </div>
+            <div class="import-modal-body">
+                <div class="import-file-area" id="importFileArea" onclick="document.getElementById('importFileInput').click()">
+                    <input type="file" id="importFileInput" accept=".json" onchange="onImportFileSelected(this)">
+                    <div class="file-label" id="importFileLabel">Click to select a .json file</div>
+                    <div class="file-name" id="importFileName"></div>
+                </div>
+                <div class="import-strategy">
+                    <label class="strategy-title">If a prompt with the same name already exists:</label>
+                    <div class="import-strategy-options">
+                        <div class="strategy-option active" data-strategy="skip" onclick="selectStrategy(this)">Skip duplicates</div>
+                        <div class="strategy-option" data-strategy="update" onclick="selectStrategy(this)">Update duplicates</div>
+                    </div>
+                </div>
+                <div class="import-results" id="importResults" style="display:none"></div>
+                <div class="import-actions">
+                    <button class="btn" id="importBtn" onclick="performImport()">Import</button>
+                    <button class="btn-secondary" onclick="closeImportDialog()">Cancel</button>
                 </div>
             </div>
         </div>
@@ -954,11 +1136,20 @@
 
         function renderSidebar() {
             const list = document.getElementById('sidebarList');
-            if (prompts.length === 0) {
-                list.innerHTML = '<div class="no-prompt-warning">No prompts yet. Click "Manage Prompts" to create one.</div>';
+            const searchTerm = (document.getElementById('promptSearch')?.value || '').toLowerCase();
+            const filtered = searchTerm
+                ? prompts.filter(p => p.name.toLowerCase().includes(searchTerm) || p.description.toLowerCase().includes(searchTerm))
+                : prompts;
+
+            document.getElementById('promptCount').textContent = prompts.length;
+
+            if (filtered.length === 0) {
+                list.innerHTML = searchTerm
+                    ? '<div class="no-prompt-warning">No prompts match the filter.</div>'
+                    : '<div class="no-prompt-warning">No prompts yet. Click "Manage Prompts" to create one.</div>';
                 return;
             }
-            list.innerHTML = prompts.map(p => `
+            list.innerHTML = filtered.map(p => `
                 <div class="prompt-card ${p.id === selectedPromptId ? 'selected' : ''}"
                      onclick="selectPrompt(${p.id})">
                     <div class="prompt-card-name">${esc(p.name)}</div>
@@ -1217,6 +1408,92 @@
                 outputSection.classList.add('visible');
             }
         }
+
+        /* ===== Export / Import ===== */
+        function exportPrompts() {
+            window.location.href = '/api/prompts/export';
+        }
+
+        let importStrategy = 'skip';
+
+        function openImportDialog() {
+            document.getElementById('importOverlay').classList.add('visible');
+            document.getElementById('importFileInput').value = '';
+            document.getElementById('importFileArea').classList.remove('has-file');
+            document.getElementById('importFileLabel').textContent = 'Click to select a .json file';
+            document.getElementById('importFileName').textContent = '';
+            document.getElementById('importResults').style.display = 'none';
+            document.getElementById('importBtn').disabled = false;
+            importStrategy = 'skip';
+            document.querySelectorAll('.strategy-option').forEach(el => {
+                el.classList.toggle('active', el.dataset.strategy === 'skip');
+            });
+        }
+
+        function closeImportDialog() {
+            document.getElementById('importOverlay').classList.remove('visible');
+        }
+
+        function onImportFileSelected(input) {
+            const file = input.files[0];
+            if (file) {
+                document.getElementById('importFileArea').classList.add('has-file');
+                document.getElementById('importFileLabel').textContent = 'Selected:';
+                document.getElementById('importFileName').textContent = file.name;
+            }
+        }
+
+        function selectStrategy(el) {
+            importStrategy = el.dataset.strategy;
+            document.querySelectorAll('.strategy-option').forEach(o => o.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        async function performImport() {
+            const fileInput = document.getElementById('importFileInput');
+            const file = fileInput.files[0];
+            if (!file) { alert('Please select a JSON file.'); return; }
+
+            const btn = document.getElementById('importBtn');
+            btn.disabled = true;
+            btn.textContent = 'Importing...';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/api/prompts/import?strategy=' + importStrategy, {
+                    method: 'POST',
+                    body: formData,
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    alert('Import error: ' + (err.detail || JSON.stringify(err)));
+                    btn.disabled = false;
+                    btn.textContent = 'Import';
+                    return;
+                }
+                const result = await res.json();
+                const resultsDiv = document.getElementById('importResults');
+                resultsDiv.style.display = 'block';
+                resultsDiv.innerHTML = `
+                    <div class="result-row"><span class="result-label">Imported:</span> <span class="result-value">${result.imported}</span></div>
+                    <div class="result-row"><span class="result-label">Skipped:</span> <span class="result-value">${result.skipped}</span></div>
+                    <div class="result-row"><span class="result-label">Updated:</span> <span class="result-value">${result.updated}</span></div>
+                    ${result.errors.length > 0 ? '<div class="result-row" style="color:var(--error);margin-top:6px">' + esc(result.errors.join(', ')) + '</div>' : ''}
+                `;
+                btn.textContent = 'Done';
+                await loadPrompts();
+            } catch(e) {
+                alert('Import failed: ' + e.message);
+                btn.disabled = false;
+                btn.textContent = 'Import';
+            }
+        }
+
+        document.getElementById('importOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeImportDialog();
+        });
 
         /* ===== Util ===== */
         function esc(str) {
