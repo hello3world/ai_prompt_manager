@@ -13,21 +13,48 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import engine, get_db
 from app.default_prompts import DEFAULT_PROMPTS
-from app.models import Base, Prompt
+from app.models import Base, Prompt, PromptGroup, ApiToken, FeatureDescription
 from app.routers.prompts import router as prompts_router
+from app.routers.groups import router as groups_router
+from app.routers.tokens import router as tokens_router
+from app.routers.features import router as features_router
 from app.schemas import GenerateRequest
 
 load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env.prod")
 
+DEFAULT_GROUP_NAME = "General"
+
+
+async def seed_default_group(db: AsyncSession) -> int:
+    """Ensure the default group exists and return its id."""
+    result = await db.execute(
+        select(PromptGroup).where(PromptGroup.name == DEFAULT_GROUP_NAME)
+    )
+    group = result.scalar_one_or_none()
+    if group is None:
+        group = PromptGroup(name=DEFAULT_GROUP_NAME)
+        db.add(group)
+        await db.flush()
+    return group.id
+
 
 async def seed_default_prompts(db: AsyncSession):
     """Seed default prompts — adds any missing prompts by name."""
+    default_group_id = await seed_default_group(db)
+
     for prompt_data in DEFAULT_PROMPTS:
         result = await db.execute(
             select(Prompt).where(Prompt.name == prompt_data["name"])
         )
         if result.scalar_one_or_none() is None:
-            db.add(Prompt(**prompt_data))
+            db.add(Prompt(**prompt_data, group_id=default_group_id))
+
+    # Assign ungrouped prompts to the default group
+    result = await db.execute(
+        select(Prompt).where(Prompt.group_id.is_(None))
+    )
+    for prompt in result.scalars().all():
+        prompt.group_id = default_group_id
 
     await db.commit()
 
@@ -37,8 +64,6 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    async with engine.begin() as conn:
-        pass
     from app.database import async_session
 
     async with async_session() as db:
@@ -54,11 +79,25 @@ app = FastAPI(title="AI Prompt Hub", lifespan=lifespan)
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 
 app.include_router(prompts_router)
+app.include_router(groups_router)
+app.include_router(tokens_router)
+app.include_router(features_router)
 
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
+
+async def get_api_key(db: AsyncSession) -> str | None:
+    """Get API key from DB (active token) or fall back to env var."""
+    result = await db.execute(
+        select(ApiToken).where(ApiToken.is_active == True).limit(1)
+    )
+    token = result.scalar_one_or_none()
+    if token:
+        return token.token_value
+    return os.getenv("QWEN_API_KEY")
 
 
 @app.post("/generate")
@@ -71,7 +110,24 @@ async def generate(req: GenerateRequest, db: AsyncSession = Depends(get_db)):
     # Replace {QUERY} placeholder with user query
     full_prompt = prompt.template_text.replace("{QUERY}", req.query)
 
-    api_key = os.getenv("QWEN_API_KEY")
+    # If prompt has a linked feature description, prepend it
+    if prompt.feature_id:
+        feat_result = await db.execute(
+            select(FeatureDescription).where(
+                FeatureDescription.id == prompt.feature_id
+            )
+        )
+        feature = feat_result.scalar_one_or_none()
+        if feature:
+            full_prompt = (
+                f"## Описание функционала:\n{feature.description_text}\n\n---\n\n"
+                + full_prompt
+            )
+
+    api_key = await get_api_key(db)
+    if not api_key:
+        return {"success": False, "error": "API token not configured. Please add a token in Settings."}
+
     api_url = os.getenv(
         "QWEN_API_URL", "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
     )
@@ -142,12 +198,29 @@ async def generate_vision(
 
     full_prompt = prompt.template_text.replace("{QUERY}", query)
 
+    # If prompt has a linked feature description, prepend it
+    if prompt.feature_id:
+        feat_result = await db.execute(
+            select(FeatureDescription).where(
+                FeatureDescription.id == prompt.feature_id
+            )
+        )
+        feature = feat_result.scalar_one_or_none()
+        if feature:
+            full_prompt = (
+                f"## Описание функционала:\n{feature.description_text}\n\n---\n\n"
+                + full_prompt
+            )
+
     # Build base64 data URI
     b64 = base64.b64encode(image_bytes).decode("utf-8")
     data_uri = f"data:{file.content_type};base64,{b64}"
 
     # API config
-    api_key = os.getenv("QWEN_API_KEY")
+    api_key = await get_api_key(db)
+    if not api_key:
+        return {"success": False, "error": "API token not configured. Please add a token in Settings."}
+
     api_url = os.getenv(
         "QWEN_API_URL", "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
     )

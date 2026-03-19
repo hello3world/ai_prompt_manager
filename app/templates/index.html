@@ -34,6 +34,8 @@
             --code-bg: rgba(0,212,255,0.1);
             --pre-bg: rgba(0,0,0,0.4);
             --tooltip-bg: #252545;
+            --warning: #ffc107;
+            --warning-bg: rgba(255,193,7,0.12);
         }
 
         [data-theme="gray"] {
@@ -63,6 +65,8 @@
             --code-bg: rgba(0,188,212,0.1);
             --pre-bg: rgba(0,0,0,0.3);
             --tooltip-bg: #333;
+            --warning: #ffc107;
+            --warning-bg: rgba(255,193,7,0.12);
         }
 
         [data-theme="white"] {
@@ -92,6 +96,8 @@
             --code-bg: rgba(0,151,167,0.08);
             --pre-bg: rgba(0,0,0,0.04);
             --tooltip-bg: #fff;
+            --warning: #e65100;
+            --warning-bg: rgba(230,81,0,0.08);
         }
 
         [data-theme="charcoal"] {
@@ -121,6 +127,8 @@
             --code-bg: rgba(255,255,255,0.06);
             --pre-bg: rgba(0,0,0,0.3);
             --tooltip-bg: #2a2a2a;
+            --warning: #ffc107;
+            --warning-bg: rgba(255,193,7,0.12);
         }
 
         /* ===== Reset & Base ===== */
@@ -174,6 +182,19 @@
         .model-select:focus { border-color: var(--accent); }
         .model-select option { background: var(--bg-modal); color: var(--text-primary); }
 
+        .header-icon-btn {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 5px 8px;
+            font-size: 0.82rem;
+            transition: all 0.2s;
+            margin-right: 4px;
+        }
+        .header-icon-btn:hover { background: var(--bg-surface-hover); color: var(--text-primary); }
+
         .theme-btn {
             width: 28px; height: 28px;
             border-radius: 50%;
@@ -197,8 +218,8 @@
 
         /* ===== Sidebar ===== */
         .sidebar {
-            width: 280px;
-            min-width: 280px;
+            width: 300px;
+            min-width: 300px;
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
@@ -220,17 +241,60 @@
         .sidebar-list {
             flex: 1;
             overflow-y: auto;
+            overflow-x: hidden;
             padding: 8px;
         }
 
+        /* Group headers in sidebar */
+        .group-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            margin-top: 4px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background 0.2s;
+            user-select: none;
+        }
+        .group-header:hover { background: var(--bg-surface-hover); }
+        .group-header-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .group-header-left .arrow {
+            font-size: 0.7rem;
+            transition: transform 0.2s;
+        }
+        .group-header-left .arrow.collapsed { transform: rotate(-90deg); }
+        .group-count {
+            font-size: 0.7rem;
+            background: var(--accent-bg);
+            color: var(--accent);
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-weight: 700;
+        }
+        .group-prompts { }
+        .group-prompts.collapsed { display: none; }
+
         .prompt-card {
-            padding: 12px;
+            padding: 10px 12px;
             border-radius: 8px;
             cursor: pointer;
             border: 1px solid transparent;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
             transition: all 0.2s;
             position: relative;
+            margin-left: 8px;
+            overflow-x: hidden;
+            word-wrap: break-word;
         }
         .prompt-card:hover {
             background: var(--bg-surface-hover);
@@ -241,17 +305,23 @@
         }
         .prompt-card-name {
             font-weight: 600;
-            font-size: 0.9rem;
-            margin-bottom: 4px;
+            font-size: 0.85rem;
+            margin-bottom: 2px;
             color: var(--text-primary);
         }
         .prompt-card-desc {
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             color: var(--text-secondary);
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+        }
+        .prompt-card-feature {
+            font-size: 0.7rem;
+            color: var(--warning);
+            margin-top: 2px;
+            font-style: italic;
         }
 
         /* Tooltip on hover */
@@ -294,6 +364,7 @@
         .sidebar-search {
             padding: 8px 12px;
             border-bottom: 1px solid var(--border-color);
+            overflow: hidden;
         }
         .sidebar-search input {
             width: 100%;
@@ -306,6 +377,7 @@
             font-family: inherit;
             outline: none;
             transition: border-color 0.2s;
+            box-sizing: border-box;
         }
         .sidebar-search input:focus { border-color: var(--accent); }
         .sidebar-search input::placeholder { color: var(--text-muted); }
@@ -464,26 +536,6 @@
         .selected-prompt-name {
             color: var(--accent);
             font-weight: 600;
-        }
-
-        /* Model radio toggle */
-        .model-toggle {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-        .model-toggle label {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin-bottom: 0;
-        }
-        .model-toggle input[type="radio"] {
-            accent-color: var(--accent);
-            cursor: pointer;
         }
 
         /* Image upload zone */
@@ -735,7 +787,7 @@
             border-radius: 8px;
         }
 
-        /* ===== Modal ===== */
+        /* ===== Modal (shared) ===== */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -793,8 +845,10 @@
             margin-bottom: 6px;
             background: var(--bg-surface);
         }
+        .modal-prompt-item-info { flex: 1; min-width: 0; }
         .modal-prompt-item-name { font-weight: 600; font-size: 0.9rem; }
-        .modal-prompt-item-actions { display: flex; gap: 6px; }
+        .modal-prompt-item-group { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+        .modal-prompt-item-actions { display: flex; gap: 6px; flex-shrink: 0; }
         .modal-action-btn {
             padding: 5px 10px;
             border-radius: 6px;
@@ -835,7 +889,8 @@
         }
         .modal-form label:first-child { margin-top: 0; }
         .modal-form input,
-        .modal-form textarea {
+        .modal-form textarea,
+        .modal-form select {
             width: 100%;
             padding: 10px 12px;
             border: 1px solid var(--border-color);
@@ -846,10 +901,12 @@
             font-size: 0.9rem;
         }
         .modal-form input:focus,
-        .modal-form textarea:focus {
+        .modal-form textarea:focus,
+        .modal-form select:focus {
             outline: none;
             border-color: var(--accent);
         }
+        .modal-form select option { background: var(--bg-modal); color: var(--text-primary); }
         .modal-form textarea { min-height: 180px; font-family: 'Consolas','Monaco',monospace; font-size: 0.85rem; }
         .modal-form .hint {
             font-size: 0.75rem;
@@ -894,6 +951,133 @@
             flex-shrink: 0;
         }
 
+        /* ===== Settings / Token / Feature / Group modals ===== */
+        .settings-section {
+            margin-bottom: 20px;
+        }
+        .settings-section h3 {
+            font-size: 0.95rem;
+            color: var(--accent);
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .settings-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-bottom: 6px;
+            background: var(--bg-surface);
+        }
+        .settings-item-info { flex: 1; min-width: 0; }
+        .settings-item-name { font-weight: 600; font-size: 0.85rem; }
+        .settings-item-detail { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+        .settings-item-actions { display: flex; gap: 6px; }
+        .settings-add-btn {
+            padding: 8px;
+            width: 100%;
+            background: var(--accent-bg);
+            color: var(--accent);
+            border: 1px dashed var(--border-accent);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .settings-add-btn:hover { background: var(--accent-bg-hover); }
+
+        .inline-form {
+            padding: 12px;
+            border: 1px solid var(--border-accent);
+            border-radius: 8px;
+            background: var(--bg-surface);
+            margin-bottom: 10px;
+        }
+        .inline-form label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            margin-top: 10px;
+        }
+        .inline-form label:first-child { margin-top: 0; }
+        .inline-form input,
+        .inline-form textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.85rem;
+        }
+        .inline-form input:focus,
+        .inline-form textarea:focus { outline: none; border-color: var(--accent); }
+        .inline-form textarea { min-height: 80px; }
+        .inline-form-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .inline-form-actions .btn { font-size: 0.82rem; padding: 7px 14px; }
+        .inline-form-actions .btn-secondary { font-size: 0.82rem; padding: 7px 14px; }
+
+        .active-badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+        .active-badge.yes { background: rgba(0,255,136,0.15); color: var(--success); }
+        .active-badge.no { background: var(--error-bg); color: var(--error); }
+
+        /* Move prompt select */
+        .move-select {
+            padding: 4px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 0.78rem;
+            cursor: pointer;
+        }
+        .move-select option { background: var(--bg-modal); }
+
+        /* Tabs in settings */
+        .settings-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+        .settings-tab {
+            padding: 6px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px 6px 0 0;
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .settings-tab:hover { background: var(--bg-surface-hover); }
+        .settings-tab.active {
+            background: var(--accent-bg);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+        .settings-panel { display: none; }
+        .settings-panel.visible { display: block; }
+
         /* ===== Responsive ===== */
         @media (max-width: 768px) {
             .layout { flex-direction: column; }
@@ -912,6 +1096,7 @@
                 <option value="qwen-max">Qwen Max (Text)</option>
                 <option value="qwen-vl-max">Qwen VL Max (Vision)</option>
             </select>
+            <button class="header-icon-btn" onclick="openSettings()" title="Settings">Settings</button>
             <div class="theme-btn" data-set-theme="dark" title="Dark theme"></div>
             <div class="theme-btn" data-set-theme="gray" title="Gray theme"></div>
             <div class="theme-btn" data-set-theme="charcoal" title="Charcoal theme"></div>
@@ -1006,6 +1191,15 @@
                     <label for="formDesc">Description</label>
                     <input type="text" id="formDesc" placeholder="Brief description of what this prompt does">
 
+                    <label for="formGroup">Group</label>
+                    <select id="formGroup"></select>
+
+                    <label for="formFeature">Feature Description (linked)</label>
+                    <select id="formFeature">
+                        <option value="">-- None --</option>
+                    </select>
+                    <div class="hint">Link a feature description to provide context to the AI alongside this prompt.</div>
+
                     <label for="formTemplate">Template</label>
                     <textarea id="formTemplate" placeholder="Your prompt template text. Use {QUERY} where the user's input should be inserted."></textarea>
                     <div class="hint">Use <code>{QUERY}</code> as a placeholder for the user's input text.</div>
@@ -1048,11 +1242,52 @@
         </div>
     </div>
 
+    <!-- Settings Modal (Tokens, Groups, Features) -->
+    <div class="modal-overlay" id="settingsOverlay">
+        <div class="modal" style="width:640px">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="modal-close" onclick="closeSettings()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-tabs">
+                    <div class="settings-tab active" data-tab="tokens" onclick="switchSettingsTab('tokens')">API Tokens</div>
+                    <div class="settings-tab" data-tab="groups" onclick="switchSettingsTab('groups')">Groups</div>
+                    <div class="settings-tab" data-tab="features" onclick="switchSettingsTab('features')">Features</div>
+                </div>
+
+                <!-- Tokens Panel -->
+                <div class="settings-panel visible" id="panelTokens">
+                    <div id="tokenFormArea"></div>
+                    <div id="tokenList"></div>
+                    <button class="settings-add-btn" id="addTokenBtn" onclick="showTokenForm()">+ Add Token</button>
+                </div>
+
+                <!-- Groups Panel -->
+                <div class="settings-panel" id="panelGroups">
+                    <div id="groupFormArea"></div>
+                    <div id="groupList"></div>
+                    <button class="settings-add-btn" id="addGroupBtn" onclick="showGroupForm()">+ Add Group</button>
+                </div>
+
+                <!-- Features Panel -->
+                <div class="settings-panel" id="panelFeatures">
+                    <div id="featureFormArea"></div>
+                    <div id="featureList"></div>
+                    <button class="settings-add-btn" id="addFeatureBtn" onclick="showFeatureForm()">+ Add Feature</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         /* ===== State ===== */
         let prompts = [];
+        let groups = [];
+        let features = [];
         let selectedPromptId = null;
         let editingPromptId = null; // null = creating new
+        let collapsedGroups = JSON.parse(localStorage.getItem('collapsedGroups') || '{}');
 
         /* ===== Model Selector ===== */
         function onModelChange() {
@@ -1112,10 +1347,23 @@
             btn.addEventListener('click', () => setTheme(btn.dataset.setTheme));
         });
 
-        // Restore saved theme
         setTheme(localStorage.getItem('theme') || 'dark');
 
-        /* ===== Prompts: Load & Render Sidebar ===== */
+        /* ===== Data Loading ===== */
+        async function loadGroups() {
+            try {
+                const res = await fetch('/api/groups');
+                groups = await res.json();
+            } catch(e) { groups = []; }
+        }
+
+        async function loadFeatures() {
+            try {
+                const res = await fetch('/api/features');
+                features = await res.json();
+            } catch(e) { features = []; }
+        }
+
         async function loadPrompts() {
             try {
                 const res = await fetch('/api/prompts');
@@ -1124,7 +1372,6 @@
                 prompts = [];
             }
             renderSidebar();
-            // Auto-select first if nothing selected
             if (prompts.length > 0 && !prompts.find(p => p.id === selectedPromptId)) {
                 selectPrompt(prompts[0].id);
             }
@@ -1134,6 +1381,13 @@
             }
         }
 
+        async function loadAll() {
+            await loadGroups();
+            await loadFeatures();
+            await loadPrompts();
+        }
+
+        /* ===== Sidebar Render (with groups) ===== */
         function renderSidebar() {
             const list = document.getElementById('sidebarList');
             const searchTerm = (document.getElementById('promptSearch')?.value || '').toLowerCase();
@@ -1149,14 +1403,74 @@
                     : '<div class="no-prompt-warning">No prompts yet. Click "Manage Prompts" to create one.</div>';
                 return;
             }
-            list.innerHTML = filtered.map(p => `
+
+            // Group prompts
+            const grouped = {};
+            const ungrouped = [];
+            for (const p of filtered) {
+                if (p.group_id) {
+                    if (!grouped[p.group_id]) grouped[p.group_id] = [];
+                    grouped[p.group_id].push(p);
+                } else {
+                    ungrouped.push(p);
+                }
+            }
+
+            let html = '';
+            for (const g of groups) {
+                const gPrompts = grouped[g.id] || [];
+                if (gPrompts.length === 0 && searchTerm) continue;
+                const isCollapsed = collapsedGroups[g.id];
+                html += `
+                    <div class="group-header" onclick="toggleGroup(${g.id})">
+                        <div class="group-header-left">
+                            <span class="arrow ${isCollapsed ? 'collapsed' : ''}">&#9660;</span>
+                            ${esc(g.name)}
+                        </div>
+                        <span class="group-count">${gPrompts.length}</span>
+                    </div>
+                    <div class="group-prompts ${isCollapsed ? 'collapsed' : ''}" id="groupPrompts_${g.id}">
+                        ${gPrompts.map(p => renderPromptCard(p)).join('')}
+                    </div>
+                `;
+            }
+
+            if (ungrouped.length > 0) {
+                html += `
+                    <div class="group-header" onclick="toggleGroup(0)">
+                        <div class="group-header-left">
+                            <span class="arrow ${collapsedGroups[0] ? 'collapsed' : ''}">&#9660;</span>
+                            Ungrouped
+                        </div>
+                        <span class="group-count">${ungrouped.length}</span>
+                    </div>
+                    <div class="group-prompts ${collapsedGroups[0] ? 'collapsed' : ''}" id="groupPrompts_0">
+                        ${ungrouped.map(p => renderPromptCard(p)).join('')}
+                    </div>
+                `;
+            }
+
+            list.innerHTML = html;
+        }
+
+        function renderPromptCard(p) {
+            const feat = p.feature_id ? features.find(f => f.id === p.feature_id) : null;
+            return `
                 <div class="prompt-card ${p.id === selectedPromptId ? 'selected' : ''}"
-                     onclick="selectPrompt(${p.id})">
+                     onclick="selectPrompt(${p.id})"
+                     ondblclick="editPromptDblClick(${p.id})">
                     <div class="prompt-card-name">${esc(p.name)}</div>
                     <div class="prompt-card-desc">${esc(p.description)}</div>
+                    ${feat ? '<div class="prompt-card-feature">Feature: ' + esc(feat.name) + '</div>' : ''}
                     <div class="tooltip">${esc(p.description)}</div>
                 </div>
-            `).join('');
+            `;
+        }
+
+        function toggleGroup(groupId) {
+            collapsedGroups[groupId] = !collapsedGroups[groupId];
+            localStorage.setItem('collapsedGroups', JSON.stringify(collapsedGroups));
+            renderSidebar();
         }
 
         function selectPrompt(id) {
@@ -1164,6 +1478,12 @@
             const p = prompts.find(x => x.id === id);
             document.getElementById('selectedPromptName').textContent = p ? p.name : 'none selected';
             renderSidebar();
+        }
+
+        /* ===== Double-click to edit ===== */
+        function editPromptDblClick(id) {
+            openManager();
+            setTimeout(() => editPrompt(id), 100);
         }
 
         /* ===== Generate ===== */
@@ -1187,7 +1507,6 @@
             try {
                 let res;
                 if (model === 'qwen-vl-max' && imageFile) {
-                    // Vision mode: send FormData to /generate-vision
                     const formData = new FormData();
                     formData.append('prompt_id', selectedPromptId);
                     formData.append('query', query);
@@ -1197,7 +1516,6 @@
                         body: formData,
                     });
                 } else {
-                    // Text mode: send JSON to /generate
                     res = await fetch('/generate', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -1235,14 +1553,12 @@
             const renderedHtml = outputContent.innerHTML;
 
             try {
-                // Try rich copy: both HTML (for Jira/rich editors) and plain text (markdown)
                 const htmlBlob = new Blob([renderedHtml], { type: 'text/html' });
                 const textBlob = new Blob([rawMarkdown], { type: 'text/plain' });
                 await navigator.clipboard.write([
                     new ClipboardItem({ 'text/html': htmlBlob, 'text/plain': textBlob })
                 ]);
             } catch (e) {
-                // Fallback: plain text only
                 await navigator.clipboard.writeText(rawMarkdown);
             }
 
@@ -1268,11 +1584,12 @@
         }
 
         async function renderModalList() {
-            // Reload from server in case of external changes
             try {
                 const res = await fetch('/api/prompts');
                 prompts = await res.json();
             } catch(e) {}
+            await loadGroups();
+            await loadFeatures();
             renderSidebar();
 
             const list = document.getElementById('modalPromptList');
@@ -1280,15 +1597,43 @@
                 list.innerHTML = '<div class="no-prompt-warning">No prompts yet.</div>';
                 return;
             }
-            list.innerHTML = prompts.map(p => `
-                <div class="modal-prompt-item">
-                    <span class="modal-prompt-item-name">${esc(p.name)}</span>
-                    <div class="modal-prompt-item-actions">
-                        <button class="modal-action-btn" onclick="editPrompt(${p.id})">Edit</button>
-                        <button class="modal-action-btn delete" onclick="deletePrompt(${p.id})">Delete</button>
+
+            // Build group select options for move
+            const groupOpts = groups.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('');
+
+            list.innerHTML = prompts.map(p => {
+                const gName = groups.find(g => g.id === p.group_id)?.name || 'Ungrouped';
+                return `
+                    <div class="modal-prompt-item">
+                        <div class="modal-prompt-item-info">
+                            <div class="modal-prompt-item-name">${esc(p.name)}</div>
+                            <div class="modal-prompt-item-group">Group: ${esc(gName)}
+                                &nbsp; | Move to:
+                                <select class="move-select" onchange="movePrompt(${p.id}, this.value)">
+                                    <option value="">--</option>
+                                    ${groupOpts}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-prompt-item-actions">
+                            <button class="modal-action-btn" onclick="editPrompt(${p.id})">Edit</button>
+                            <button class="modal-action-btn delete" onclick="deletePrompt(${p.id})">Delete</button>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
+        }
+
+        async function movePrompt(promptId, groupId) {
+            if (!groupId) return;
+            try {
+                await fetch('/api/prompts/' + promptId + '/move', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ group_id: parseInt(groupId) }),
+                });
+            } catch(e) {}
+            await renderModalList();
         }
 
         function showForm(id) {
@@ -1296,6 +1641,17 @@
             document.getElementById('modalListView').style.display = 'none';
             document.getElementById('modalFormView').classList.add('visible');
             document.getElementById('modalTitle').textContent = editingPromptId ? 'Edit Prompt' : 'New Prompt';
+
+            // Populate group select
+            const groupSel = document.getElementById('formGroup');
+            groupSel.innerHTML = groups.map(g =>
+                `<option value="${g.id}">${esc(g.name)}</option>`
+            ).join('');
+
+            // Populate feature select
+            const featSel = document.getElementById('formFeature');
+            featSel.innerHTML = '<option value="">-- None --</option>' +
+                features.map(f => `<option value="${f.id}">${esc(f.name)}</option>`).join('');
 
             // Clear form
             document.getElementById('formName').value = '';
@@ -1318,6 +1674,8 @@
                 document.getElementById('formName').value = p.name;
                 document.getElementById('formDesc').value = p.description;
                 document.getElementById('formTemplate').value = p.template_text;
+                if (p.group_id) document.getElementById('formGroup').value = p.group_id;
+                if (p.feature_id) document.getElementById('formFeature').value = p.feature_id;
             } catch(e) {
                 alert('Failed to load prompt.');
                 hideForm();
@@ -1328,6 +1686,8 @@
             const name = document.getElementById('formName').value.trim();
             const description = document.getElementById('formDesc').value.trim();
             const template_text = document.getElementById('formTemplate').value;
+            const group_id = parseInt(document.getElementById('formGroup').value) || null;
+            const feature_id = parseInt(document.getElementById('formFeature').value) || null;
 
             if (!name || !description || !template_text) {
                 alert('All fields are required.');
@@ -1340,7 +1700,7 @@
                 }
             }
 
-            const body = JSON.stringify({ name, description, template_text });
+            const body = JSON.stringify({ name, description, template_text, group_id, feature_id });
             const headers = { 'Content-Type': 'application/json' };
 
             try {
@@ -1376,7 +1736,6 @@
             await renderModalList();
         }
 
-        // Close modal on overlay click
         document.getElementById('modalOverlay').addEventListener('click', function(e) {
             if (e.target === this) closeManager();
         });
@@ -1483,7 +1842,7 @@
                     ${result.errors.length > 0 ? '<div class="result-row" style="color:var(--error);margin-top:6px">' + esc(result.errors.join(', ')) + '</div>' : ''}
                 `;
                 btn.textContent = 'Done';
-                await loadPrompts();
+                await loadAll();
             } catch(e) {
                 alert('Import failed: ' + e.message);
                 btn.disabled = false;
@@ -1495,6 +1854,283 @@
             if (e.target === this) closeImportDialog();
         });
 
+        /* ===== Settings Modal ===== */
+        function openSettings() {
+            document.getElementById('settingsOverlay').classList.add('visible');
+            switchSettingsTab('tokens');
+            loadSettingsData();
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsOverlay').classList.remove('visible');
+        }
+
+        document.getElementById('settingsOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeSettings();
+        });
+
+        function switchSettingsTab(tab) {
+            document.querySelectorAll('.settings-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+            document.getElementById('panelTokens').classList.toggle('visible', tab === 'tokens');
+            document.getElementById('panelGroups').classList.toggle('visible', tab === 'groups');
+            document.getElementById('panelFeatures').classList.toggle('visible', tab === 'features');
+        }
+
+        async function loadSettingsData() {
+            await Promise.all([renderTokenList(), renderGroupList(), renderFeatureList()]);
+        }
+
+        /* ===== Token CRUD ===== */
+        async function renderTokenList() {
+            try {
+                const res = await fetch('/api/tokens');
+                const tokens = await res.json();
+                const list = document.getElementById('tokenList');
+                if (tokens.length === 0) {
+                    list.innerHTML = '<div style="padding:8px;color:var(--text-muted);font-size:0.85rem">No API tokens configured.</div>';
+                    return;
+                }
+                list.innerHTML = tokens.map(t => `
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-name">${esc(t.name)}
+                                <span class="active-badge ${t.is_active ? 'yes' : 'no'}">${t.is_active ? 'Active' : 'Inactive'}</span>
+                            </div>
+                            <div class="settings-item-detail">${esc(t.token_masked)}</div>
+                        </div>
+                        <div class="settings-item-actions">
+                            ${t.is_active
+                                ? `<button class="modal-action-btn" onclick="toggleToken(${t.id}, false)">Deactivate</button>`
+                                : `<button class="modal-action-btn" onclick="toggleToken(${t.id}, true)">Activate</button>`
+                            }
+                            <button class="modal-action-btn" onclick="editTokenInline(${t.id})">Edit</button>
+                            <button class="modal-action-btn delete" onclick="deleteToken(${t.id})">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch(e) {}
+        }
+
+        function showTokenForm(editId) {
+            const area = document.getElementById('tokenFormArea');
+            area.innerHTML = `
+                <div class="inline-form">
+                    <label>Name</label>
+                    <input type="text" id="tokenFormName" placeholder="e.g. My Qwen Token" value="Default">
+                    <label>Token</label>
+                    <input type="text" id="tokenFormValue" placeholder="sk-...">
+                    <div class="inline-form-actions">
+                        <button class="btn" onclick="saveToken(${editId || 'null'})">${editId ? 'Update' : 'Save'}</button>
+                        <button class="btn-secondary" onclick="hideTokenForm()">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function hideTokenForm() {
+            document.getElementById('tokenFormArea').innerHTML = '';
+        }
+
+        async function editTokenInline(id) {
+            showTokenForm(id);
+            try {
+                const res = await fetch('/api/tokens/' + id);
+                const t = await res.json();
+                document.getElementById('tokenFormName').value = t.name;
+                document.getElementById('tokenFormValue').value = t.token_value;
+            } catch(e) {}
+        }
+
+        async function saveToken(editId) {
+            const name = document.getElementById('tokenFormName').value.trim();
+            const token_value = document.getElementById('tokenFormValue').value.trim();
+            if (!token_value) { alert('Token value is required.'); return; }
+
+            const body = JSON.stringify(editId ? { name, token_value } : { name, token_value });
+            const headers = { 'Content-Type': 'application/json' };
+
+            try {
+                if (editId) {
+                    await fetch('/api/tokens/' + editId, { method: 'PUT', headers, body });
+                } else {
+                    await fetch('/api/tokens', { method: 'POST', headers, body });
+                }
+            } catch(e) { alert('Failed: ' + e.message); return; }
+
+            hideTokenForm();
+            await renderTokenList();
+        }
+
+        async function toggleToken(id, activate) {
+            try {
+                await fetch('/api/tokens/' + id, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_active: activate }),
+                });
+            } catch(e) {}
+            await renderTokenList();
+        }
+
+        async function deleteToken(id) {
+            if (!confirm('Delete this token?')) return;
+            try { await fetch('/api/tokens/' + id, { method: 'DELETE' }); } catch(e) {}
+            await renderTokenList();
+        }
+
+        /* ===== Group CRUD ===== */
+        async function renderGroupList() {
+            await loadGroups();
+            const list = document.getElementById('groupList');
+            if (groups.length === 0) {
+                list.innerHTML = '<div style="padding:8px;color:var(--text-muted);font-size:0.85rem">No groups.</div>';
+                return;
+            }
+            list.innerHTML = groups.map(g => `
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <div class="settings-item-name">${esc(g.name)}</div>
+                    </div>
+                    <div class="settings-item-actions">
+                        <button class="modal-action-btn" onclick="editGroupInline(${g.id})">Edit</button>
+                        <button class="modal-action-btn delete" onclick="deleteGroup(${g.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showGroupForm(editId) {
+            const area = document.getElementById('groupFormArea');
+            area.innerHTML = `
+                <div class="inline-form">
+                    <label>Group Name</label>
+                    <input type="text" id="groupFormName" placeholder="e.g. Regression Tests">
+                    <div class="inline-form-actions">
+                        <button class="btn" onclick="saveGroup(${editId || 'null'})">${editId ? 'Update' : 'Save'}</button>
+                        <button class="btn-secondary" onclick="hideGroupForm()">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function hideGroupForm() {
+            document.getElementById('groupFormArea').innerHTML = '';
+        }
+
+        async function editGroupInline(id) {
+            showGroupForm(id);
+            try {
+                const res = await fetch('/api/groups/' + id);
+                const g = await res.json();
+                document.getElementById('groupFormName').value = g.name;
+            } catch(e) {}
+        }
+
+        async function saveGroup(editId) {
+            const name = document.getElementById('groupFormName').value.trim();
+            if (!name) { alert('Group name is required.'); return; }
+
+            const body = JSON.stringify({ name });
+            const headers = { 'Content-Type': 'application/json' };
+
+            try {
+                if (editId) {
+                    await fetch('/api/groups/' + editId, { method: 'PUT', headers, body });
+                } else {
+                    await fetch('/api/groups', { method: 'POST', headers, body });
+                }
+            } catch(e) { alert('Failed: ' + e.message); return; }
+
+            hideGroupForm();
+            await renderGroupList();
+            await loadAll();
+        }
+
+        async function deleteGroup(id) {
+            if (!confirm('Delete this group? Prompts in this group will become ungrouped.')) return;
+            try { await fetch('/api/groups/' + id, { method: 'DELETE' }); } catch(e) {}
+            await renderGroupList();
+            await loadAll();
+        }
+
+        /* ===== Feature CRUD ===== */
+        async function renderFeatureList() {
+            await loadFeatures();
+            const list = document.getElementById('featureList');
+            if (features.length === 0) {
+                list.innerHTML = '<div style="padding:8px;color:var(--text-muted);font-size:0.85rem">No feature descriptions.</div>';
+                return;
+            }
+            list.innerHTML = features.map(f => `
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <div class="settings-item-name">${esc(f.name)}</div>
+                    </div>
+                    <div class="settings-item-actions">
+                        <button class="modal-action-btn" onclick="editFeatureInline(${f.id})">Edit</button>
+                        <button class="modal-action-btn delete" onclick="deleteFeature(${f.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showFeatureForm(editId) {
+            const area = document.getElementById('featureFormArea');
+            area.innerHTML = `
+                <div class="inline-form">
+                    <label>Feature Name</label>
+                    <input type="text" id="featureFormName" placeholder="e.g. Dashboard Module">
+                    <label>Description</label>
+                    <textarea id="featureFormText" placeholder="Describe the feature/functionality..."></textarea>
+                    <div class="inline-form-actions">
+                        <button class="btn" onclick="saveFeature(${editId || 'null'})">${editId ? 'Update' : 'Save'}</button>
+                        <button class="btn-secondary" onclick="hideFeatureForm()">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function hideFeatureForm() {
+            document.getElementById('featureFormArea').innerHTML = '';
+        }
+
+        async function editFeatureInline(id) {
+            showFeatureForm(id);
+            try {
+                const res = await fetch('/api/features/' + id);
+                const f = await res.json();
+                document.getElementById('featureFormName').value = f.name;
+                document.getElementById('featureFormText').value = f.description_text;
+            } catch(e) {}
+        }
+
+        async function saveFeature(editId) {
+            const name = document.getElementById('featureFormName').value.trim();
+            const description_text = document.getElementById('featureFormText').value.trim();
+            if (!name || !description_text) { alert('All fields are required.'); return; }
+
+            const body = JSON.stringify({ name, description_text });
+            const headers = { 'Content-Type': 'application/json' };
+
+            try {
+                if (editId) {
+                    await fetch('/api/features/' + editId, { method: 'PUT', headers, body });
+                } else {
+                    await fetch('/api/features', { method: 'POST', headers, body });
+                }
+            } catch(e) { alert('Failed: ' + e.message); return; }
+
+            hideFeatureForm();
+            await renderFeatureList();
+        }
+
+        async function deleteFeature(id) {
+            if (!confirm('Delete this feature description? Linked prompts will be unlinked.')) return;
+            try { await fetch('/api/features/' + id, { method: 'DELETE' }); } catch(e) {}
+            await renderFeatureList();
+            await loadAll();
+        }
+
         /* ===== Util ===== */
         function esc(str) {
             const d = document.createElement('div');
@@ -1503,7 +2139,7 @@
         }
 
         /* ===== Init ===== */
-        loadPrompts();
+        loadAll();
         restoreLastResponse();
         restoreModel();
     </script>

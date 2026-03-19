@@ -11,7 +11,7 @@ from app.database import get_db
 from app.models import Prompt
 from app.schemas import (
     PromptCreate, PromptUpdate, PromptOut, PromptListItem,
-    PromptExportItem, ImportResult,
+    PromptExportItem, ImportResult, PromptMoveRequest,
 )
 
 router = APIRouter(prefix="/api/prompts", tags=["prompts"])
@@ -114,6 +114,8 @@ async def create_prompt(data: PromptCreate, db: AsyncSession = Depends(get_db)):
         name=data.name,
         description=data.description,
         template_text=data.template_text,
+        group_id=data.group_id,
+        feature_id=data.feature_id,
     )
     db.add(prompt)
     await db.commit()
@@ -147,3 +149,17 @@ async def delete_prompt(prompt_id: int, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Prompt not found")
     await db.delete(prompt)
     await db.commit()
+
+
+@router.patch("/{prompt_id}/move", response_model=PromptOut)
+async def move_prompt(
+    prompt_id: int, data: PromptMoveRequest, db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Prompt).where(Prompt.id == prompt_id))
+    prompt = result.scalar_one_or_none()
+    if not prompt:
+        raise HTTPException(status_code=404, detail="Prompt not found")
+    prompt.group_id = data.group_id
+    await db.commit()
+    await db.refresh(prompt)
+    return prompt
