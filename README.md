@@ -1,13 +1,24 @@
 # AI Prompt Hub
 
-Web-application for working with AI (Qwen) through pre-configured prompt templates. Includes CRUD for prompts, theme switching, rich-text copy for Jira, and localStorage persistence.
+Web-application for working with AI (Qwen) through pre-configured prompt templates. Organize prompts into groups, manage API tokens, link feature descriptions, and generate structured output for Jira.
+
+## Features
+
+- **Prompt Management** -- CRUD operations for prompt templates with search and filtering
+- **Groups** -- Organize prompts into collapsible groups (e.g., "General", "API Tests")
+- **Feature Descriptions** -- Link prompts to feature descriptions for context-aware generation
+- **API Token Management** -- Store and manage multiple API tokens with activation/deactivation
+- **Import/Export** -- Backup and restore prompts via JSON export/import
+- **Vision Support** -- Upload images for visual analysis with AI
+- **Theme Switching** -- Dark, Gray, Charcoal, and White themes
+- **Rich Copy** -- Copy output as formatted HTML for Jira or plain markdown
 
 ## Prerequisites
 
-- [Docker Desktop for Mac](https://docs.docker.com/desktop/install/mac-install/) (includes Docker Compose)
+- [Docker Desktop](https://docs.docker.com/desktop/install/) (Windows, Mac, or Linux)
 - Git
 
-## Deployment on macOS
+## Quick Start
 
 ### 1. Clone the repository
 
@@ -18,20 +29,18 @@ cd ai_prompt_manager
 
 ### 2. Create the environment file
 
-Copy the example and fill in your API keys:
-
 ```bash
 cp .env.prod.example .env.prod
 ```
 
-Edit `.env.prod` and set your values:
+Edit `.env.prod` and set your Qwen API key:
 
 ```dotenv
 # AI Provider
 AI_PROVIDER=qwen
 
-# QWEN
-QWEN_API_KEY=<your-qwen-api-key>
+# QWEN (required)
+QWEN_API_KEY=your-api-key-here
 QWEN_API_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1
 QWEN_MODEL=qwen-max
 
@@ -39,7 +48,7 @@ QWEN_MODEL=qwen-max
 AI_MAX_TOKENS=2000
 AI_TEMPERATURE=0.5
 
-# Database (keep defaults for local Docker setup)
+# Database (keep defaults for Docker)
 DB_HOST=db
 DB_PORT=5432
 DB_NAME=prompthub
@@ -59,54 +68,17 @@ This starts two containers:
 
 ### 4. Open the application
 
-Open in browser: [http://localhost:8000](http://localhost:8000)
+Navigate to: [http://localhost:8000](http://localhost:8000)
 
-On first launch, default prompts ("Bug Report Template", "Test Case Generator") are automatically seeded into the database.
+Default prompts ("Bug Report Template", "Test Case Generator", etc.) are automatically seeded on first launch.
 
-### 5. Connect to the database
-
-To connect to PostgreSQL running inside Docker:
-
-```bash
-docker exec -it prompthub-db psql -U postgres -d prompthub
-```
-
-Useful queries:
-
-```sql
--- List all prompts
-SELECT id, name, description FROM prompts;
-
--- View full prompt text
-SELECT name, template_text FROM prompts WHERE id = 1;
-```
-
-To connect from an external tool (DBeaver, pgAdmin, DataGrip, etc.):
-
-1. Add port mapping to `docker-compose.yml` under the `db` service:
-   ```yaml
-   ports:
-     - "5432:5432"
-   ```
-2. Restart: `docker compose up -d`
-3. Use these connection settings:
-   | Parameter | Value              |
-   |-----------|--------------------|
-   | Host      | `localhost`        |
-   | Port      | `5432`             |
-   | Database  | `prompthub`        |
-   | User      | `postgres`         |
-   | Password  | `prompthub_secret` |
-
-> Password is set in `docker-compose.yml` (`POSTGRES_PASSWORD`). For production, change it and update `.env.prod` accordingly.
-
-### 6. Stop the application
+### 5. Stop the application
 
 ```bash
 docker compose down
 ```
 
-To also remove the database volume (all stored prompts will be lost):
+To remove all data including the database:
 
 ```bash
 docker compose down -v
@@ -114,39 +86,71 @@ docker compose down -v
 
 ## Usage
 
-- **Select a prompt** in the left sidebar
-- **Enter your query** in the text area -- it replaces the `{QUERY}` placeholder in the prompt template
-- **Click Generate** or press `Ctrl+Enter`
-- **Copy the response** -- copies both rich HTML (for Jira) and plain markdown
-- **Manage prompts** -- click "Manage Prompts" to create, edit, or delete prompt templates
-- **Switch themes** -- Dark, Gray, Charcoal (no blue), White via buttons in the header
-- **Reset** -- clears the input and output, removes cached response
+1. **Select a prompt** from the left sidebar (organized by groups)
+2. **Enter your query** -- it replaces the `{QUERY}` placeholder in the template
+3. **Click Generate** or press `Ctrl+Enter`
+4. **Copy the response** -- formatted for Jira (rich HTML) or markdown
+5. **Manage prompts** -- click "Manage Prompts" to create, edit, delete, or organize templates
+6. **Manage Groups** -- organize prompts into collapsible groups
+7. **Feature Descriptions** -- add context descriptions linked to prompts
+8. **API Tokens** -- manage multiple AI API tokens in Settings
+
+## API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/prompts` | List all prompts |
+| `POST /api/prompts` | Create new prompt |
+| `GET /api/groups` | List prompt groups |
+| `POST /api/groups` | Create new group |
+| `GET /api/features` | List feature descriptions |
+| `GET /api/tokens` | List API tokens |
+| `POST /generate` | Generate AI response |
+| `POST /generate-vision` | Generate with image upload |
+
+## Database Connection
+
+Connect to PostgreSQL inside Docker:
+
+```bash
+docker exec -it prompthub-db psql -U postgres -d prompthub
+```
+
+Or connect from external tools (pgAdmin, DBeaver) using:
+- Host: `localhost`
+- Port: `5432` (or `5433` if mapped differently)
+- Database: `prompthub`
+- User: `postgres`
+- Password: `prompthub_secret`
 
 ## Project Structure
 
 ```
 .
 ├── app/
-│   ├── main.py              # FastAPI app, lifespan, /generate endpoint
-│   ├── default_prompts.py    # Default prompt definitions for DB seeding
-│   ├── database.py           # Async SQLAlchemy engine & session
-│   ├── models.py             # Prompt ORM model
-│   ├── schemas.py            # Pydantic schemas
+│   ├── main.py              # FastAPI app, lifespan, /generate endpoints
+│   ├── default_prompts.py   # Default prompt definitions
+│   ├── database.py          # Async SQLAlchemy engine & session
+│   ├── models.py            # ORM models (Prompt, Group, Feature, Token)
+│   ├── schemas.py           # Pydantic schemas
 │   ├── routers/
-│   │   └── prompts.py        # CRUD API /api/prompts
+│   │   ├── prompts.py       # Prompt CRUD API
+│   │   ├── groups.py        # Group management API
+│   │   ├── features.py      # Feature descriptions API
+│   │   └── tokens.py        # API token management API
 │   └── templates/
-│       └── index.html        # Frontend (vanilla JS)
-├── prompts_backup.md         # Backup copy of default prompts (not used by app)
+│       └── index.html       # Frontend (vanilla JS)
 ├── docker-compose.yml
 ├── Dockerfile
 ├── requirements.txt
-└── .env.prod                 # Environment variables (not committed)
+├── .env.prod.example        # Environment template
+└── .env.prod                # Your environment variables (not committed)
 ```
 
 ## Tech Stack
 
-- **Backend:** Python 3.11, FastAPI, SQLAlchemy (async), asyncpg
+- **Backend:** Python 3.11, FastAPI, SQLAlchemy 2.0 (async), asyncpg
 - **Database:** PostgreSQL 16
-- **Frontend:** Vanilla JS, marked.js
-- **AI:** Qwen (DashScope API)
+- **Frontend:** Vanilla JavaScript, marked.js
+- **AI:** Qwen (DashScope API) with vision support
 - **Deploy:** Docker Compose
