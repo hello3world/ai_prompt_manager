@@ -10,7 +10,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.base import BaseHTTPMiddleware
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import engine, get_db
@@ -61,10 +61,28 @@ async def seed_default_prompts(db: AsyncSession):
     await db.commit()
 
 
+async def run_migrations(conn):
+    """Apply schema migrations for existing databases (adds missing columns)."""
+    migrations = [
+        "ALTER TABLE prompts ADD COLUMN IF NOT EXISTS group_id INTEGER REFERENCES prompt_groups(id) ON DELETE SET NULL",
+        "ALTER TABLE prompts ADD COLUMN IF NOT EXISTS feature_id INTEGER REFERENCES feature_descriptions(id) ON DELETE SET NULL",
+        "ALTER TABLE prompts ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()",
+        "ALTER TABLE prompts ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()",
+        "ALTER TABLE prompt_groups ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()",
+        "ALTER TABLE prompt_groups ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()",
+    ]
+    for sql in migrations:
+        try:
+            await conn.execute(text(sql))
+        except Exception:
+            pass  # Column already exists or table doesn't exist yet
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await run_migrations(conn)
 
     from app.database import async_session
 

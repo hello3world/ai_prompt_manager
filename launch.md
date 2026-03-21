@@ -36,8 +36,36 @@ DB_PASSWORD=prompthub_secret
 
 ## 3. Запуск приложения
 
+### Первый запуск (или после очистки)
+
 ```bash
 docker compose up --build -d
+```
+
+При первом запуске PostgreSQL автоматически создаёт все таблицы и дефолтную группу `General` через `init.sql`.
+
+### Повторный запуск (без пересборки)
+
+```bash
+docker compose up -d
+```
+
+### Пересборка после изменений в коде
+
+```bash
+docker compose up --build -d
+```
+
+### Перезапуск только приложения (без пересборки)
+
+```bash
+docker compose restart app
+```
+
+### Перезапуск только базы данных
+
+```bash
+docker compose restart db
 ```
 
 ## 4. Проверка статуса
@@ -61,4 +89,23 @@ docker compose down
 
 ```bash
 docker compose down -v
+```
+
+## Просмотр логов
+
+```bash
+# Все контейнеры
+docker compose logs -f
+
+# Только приложение
+docker logs prompthub-app -f
+
+# Только база данных
+docker logs prompthub-db -f
+```
+
+## Подключение к БД внутри контейнера
+
+```bash
+docker exec -it prompthub-db psql -U postgres -d prompthub
 ```
